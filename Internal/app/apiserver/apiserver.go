@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"restapisrever/Internal/app/storage"
-	"restapisrever/Internal/app/store"
 	"strconv"
 )
 
@@ -16,7 +15,6 @@ type APIServer struct {
 	config *Config
 	logger *logrus.Logger
 	router *mux.Router
-	store  *store.Store
 }
 
 func New(config *Config) *APIServer {
@@ -54,17 +52,11 @@ func (s *APIServer) configureRouter() {
 	s.router.HandleFunc("/root/api/{id}", s.getBannerById())
 }
 
-func (s *APIServer) configureStore() error {
-	st := store.New(s.config.Store)
-	if err := st.Open(); err != nil {
-		return err
-	}
-	s.store = st
-	return nil
-}
-
 func (s *APIServer) getBannerById() http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Access-Control-Allow-Origin", "*")
+		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
 		id, err := strconv.Atoi(getNparamFromUrl(3, request.URL.String()))
 		if err != nil {
 			return
