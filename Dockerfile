@@ -20,8 +20,4 @@ RUN go build -o /apiserver ./cmd/apiserver/main.go
 # This container exposes port 8080 to the outside world
 EXPOSE 8080
 
-RUN pwd
-# Run the binary program produced by `go install`
-CMD ["pwd"]
-
 CMD ["/apiserver"]
