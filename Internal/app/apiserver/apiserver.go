@@ -62,9 +62,9 @@ func (s *APIServer) configureRouter() {
 
 func (s *APIServer) getBannerById() http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Access-Control-Allow-Origin", "*")
+		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		if request.Method == "GET" {
-			writer.Header().Set("Access-Control-Allow-Origin", "*")
-			writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 			id, err := strconv.Atoi(getNparamFromUrl(3, request.URL.String()))
 			if err != nil {
 				return
@@ -128,7 +128,7 @@ func (s *APIServer) createBanner() http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		writer.Header().Set("Access-Control-Allow-Origin", "*")
 		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		if request.Method == "POST" {
+		if request.Method == "POST" || request.Method == "OPTIONS" {
 			banner := models.Banner{}
 			decoder := json.NewDecoder(request.Body)
 			err := decoder.Decode(&banner)
