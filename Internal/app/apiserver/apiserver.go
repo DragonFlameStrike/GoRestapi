@@ -52,8 +52,10 @@ func (s *APIServer) configureLogger() error {
 }
 
 func (s *APIServer) configureRouter() {
+	s.router.HandleFunc("/root/api/create", s.createBanner())
 	s.router.HandleFunc("/root/api/{id}", s.getBannerById())
 	s.router.HandleFunc("/root/api/search/", s.getAllBanners())
+	s.router.HandleFunc("/root/api/search/{value}", s.getBannerBySearchValue())
 
 }
 
@@ -88,6 +90,25 @@ func (s *APIServer) getAllBanners() http.HandlerFunc {
 			return
 		}
 		_, _ = io.WriteString(writer, string(bannersJson))
+	}
+}
+
+func (s *APIServer) getBannerBySearchValue() http.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Access-Control-Allow-Origin", "*")
+		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		return
+	}
+}
+
+func (s *APIServer) createBanner() http.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Access-Control-Allow-Origin", "*")
+		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		if request.Method == "POST" {
+			fmt.Println("My name is: ", request.FormValue("name"))
+		}
+		return
 	}
 }
 
