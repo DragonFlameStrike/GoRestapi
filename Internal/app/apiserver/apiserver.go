@@ -64,11 +64,11 @@ func (s *APIServer) getBannerById() http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		writer.Header().Set("Access-Control-Allow-Origin", "*")
 		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		id, err := strconv.Atoi(getNparamFromUrl(3, request.URL.String()))
+		if err != nil {
+			return
+		}
 		if request.Method == "GET" {
-			id, err := strconv.Atoi(getNparamFromUrl(3, request.URL.String()))
-			if err != nil {
-				return
-			}
 			banner, success := s.storage.GetBannerById(id)
 			if success == -1 {
 				return
@@ -86,17 +86,11 @@ func (s *APIServer) getBannerById() http.HandlerFunc {
 			if err != nil {
 				return
 			}
-			s.storage.EditBanner(banner)
+			s.storage.EditBanner(banner, id)
 			defer request.Body.Close()
 		}
 		if request.Method == "DELETE" {
-			banner := models.Banner{}
-			decoder := json.NewDecoder(request.Body)
-			err := decoder.Decode(&banner)
-			if err != nil {
-				return
-			}
-			s.storage.DeleteBanner(banner)
+			s.storage.DeleteBanner(id)
 			defer request.Body.Close()
 		}
 	}

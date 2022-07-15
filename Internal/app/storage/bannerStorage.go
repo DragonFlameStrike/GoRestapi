@@ -39,9 +39,8 @@ func (b *BannerArray) CreateBanner(banner models.Banner) {
 	b.Arr = append(b.Arr, banner)
 }
 
-func (b *BannerArray) EditBanner(banner models.Banner) {
-	bannerId := banner.IdBanner
-	oldBanner, success := b.GetBannerById(bannerId)
+func (b *BannerArray) EditBanner(banner models.Banner, id int) {
+	oldBanner, success := b.GetBannerById(id)
 	if success == -1 {
 		return
 	}
@@ -53,10 +52,10 @@ func (b *BannerArray) EditBanner(banner models.Banner) {
 	return
 }
 
-func (b *BannerArray) DeleteBanner(banner models.Banner) {
+func (b *BannerArray) DeleteBanner(id int) {
 	for i := 0; i < len(b.Arr); i++ {
 		tmp := b.Arr[i]
-		if banner.IdBanner == tmp.IdBanner {
+		if id == tmp.IdBanner {
 			b.Arr = remove(b.Arr, i)
 		}
 	}
