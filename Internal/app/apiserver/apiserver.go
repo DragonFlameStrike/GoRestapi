@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
+	"restapisrever/Internal/app/models"
 	"restapisrever/Internal/app/storage"
 	"strconv"
 )
@@ -106,7 +107,13 @@ func (s *APIServer) createBanner() http.HandlerFunc {
 		writer.Header().Set("Access-Control-Allow-Origin", "*")
 		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		if request.Method == "POST" {
-			fmt.Println("My name is: ", request.FormValue("name"))
+			banner := models.Banner{}
+			decoder := json.NewDecoder(request.Body)
+			err := decoder.Decode(&banner)
+			if err != nil {
+				return
+			}
+			defer request.Body.Close()
 		}
 		return
 	}
