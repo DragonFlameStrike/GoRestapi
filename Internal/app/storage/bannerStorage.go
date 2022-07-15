@@ -40,15 +40,12 @@ func (b *BannerArray) CreateBanner(banner models.Banner) {
 }
 
 func (b *BannerArray) EditBanner(banner models.Banner, id int) {
-	oldBanner, success := b.GetBannerById(id)
-	if success == -1 {
-		return
+	for i := 0; i < len(b.Arr); i++ {
+		tmp := b.Arr[i]
+		if id == tmp.IdBanner {
+			b.Arr[i] = banner
+		}
 	}
-	oldBanner.Name = banner.Name
-	oldBanner.Categories = banner.Categories
-	oldBanner.Price = banner.Price
-	oldBanner.Text = banner.Text
-	oldBanner.Deleted = banner.Deleted
 	return
 }
 

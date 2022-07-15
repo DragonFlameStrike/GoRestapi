@@ -55,6 +55,7 @@ func (s *APIServer) configureLogger() error {
 func (s *APIServer) configureRouter() {
 	s.router.HandleFunc("/root/api/create", s.createBanner())
 	s.router.HandleFunc("/root/api/{id}", s.getBannerById())
+	s.router.HandleFunc("/root/api/{id}/delete", s.deleteBannerById())
 	s.router.HandleFunc("/root/api/search/", s.getAllBanners())
 	s.router.HandleFunc("/root/api/search/{value}", s.getBannerBySearchValue())
 
@@ -89,10 +90,23 @@ func (s *APIServer) getBannerById() http.HandlerFunc {
 			s.storage.EditBanner(banner, id)
 			defer request.Body.Close()
 		}
-		if request.Method == "DELETE" {
-			s.storage.DeleteBanner(id)
-			defer request.Body.Close()
+		//if request.Method == "DELETE" {
+		//	s.storage.DeleteBanner(id)
+		//	defer request.Body.Close()
+		//}
+	}
+}
+
+func (s *APIServer) deleteBannerById() func(http.ResponseWriter, *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Access-Control-Allow-Origin", "*")
+		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		id, err := strconv.Atoi(getNparamFromUrl(3, request.URL.String()))
+		if err != nil {
+			return
 		}
+		s.storage.DeleteBanner(id)
+		defer request.Body.Close()
 	}
 }
 
