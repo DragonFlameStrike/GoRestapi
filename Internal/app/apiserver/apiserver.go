@@ -12,16 +12,19 @@ import (
 )
 
 type APIServer struct {
-	config *Config
-	logger *logrus.Logger
-	router *mux.Router
+	config  *Config
+	logger  *logrus.Logger
+	router  *mux.Router
+	storage *storage.BannerArray
 }
 
 func New(config *Config) *APIServer {
+	var bannerStorage storage.BannerArray
 	return &APIServer{
-		config: config,
-		logger: logrus.New(),
-		router: mux.NewRouter(),
+		config:  config,
+		logger:  logrus.New(),
+		router:  mux.NewRouter(),
+		storage: bannerStorage.BannerStorageInit(),
 	}
 }
 
@@ -50,20 +53,19 @@ func (s *APIServer) configureLogger() error {
 
 func (s *APIServer) configureRouter() {
 	s.router.HandleFunc("/root/api/{id}", s.getBannerById())
+	s.router.HandleFunc("/root/api/search/", s.getAllBanners())
+
 }
 
 func (s *APIServer) getBannerById() http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		writer.Header().Set("Access-Control-Allow-Origin", "*")
 		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
 		id, err := strconv.Atoi(getNparamFromUrl(3, request.URL.String()))
 		if err != nil {
 			return
 		}
-		var stor storage.BannerArray
-		stor.BannerStorageInit()
-		banner, success := stor.GetBannerById(id)
+		banner, success := s.storage.GetBannerById(id)
 		if success == -1 {
 			return
 		}
@@ -72,6 +74,20 @@ func (s *APIServer) getBannerById() http.HandlerFunc {
 			return
 		}
 		_, _ = io.WriteString(writer, string(bannerJson))
+	}
+}
+
+func (s *APIServer) getAllBanners() http.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Access-Control-Allow-Origin", "*")
+		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		banners := s.storage.GetAllBanners()
+		bannersJson, err := json.Marshal(banners)
+		bannersJson = bannersJson[7 : len(bannersJson)-1]
+		if err != nil {
+			return
+		}
+		_, _ = io.WriteString(writer, string(bannersJson))
 	}
 }
 
