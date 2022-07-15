@@ -62,21 +62,43 @@ func (s *APIServer) configureRouter() {
 
 func (s *APIServer) getBannerById() http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		writer.Header().Set("Access-Control-Allow-Origin", "*")
-		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		id, err := strconv.Atoi(getNparamFromUrl(3, request.URL.String()))
-		if err != nil {
-			return
+		if request.Method == "GET" {
+			writer.Header().Set("Access-Control-Allow-Origin", "*")
+			writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+			id, err := strconv.Atoi(getNparamFromUrl(3, request.URL.String()))
+			if err != nil {
+				return
+			}
+			banner, success := s.storage.GetBannerById(id)
+			if success == -1 {
+				return
+			}
+			bannerJson, err := json.Marshal(banner)
+			if err != nil {
+				return
+			}
+			_, _ = io.WriteString(writer, string(bannerJson))
 		}
-		banner, success := s.storage.GetBannerById(id)
-		if success == -1 {
-			return
+		if request.Method == "POST" {
+			banner := models.Banner{}
+			decoder := json.NewDecoder(request.Body)
+			err := decoder.Decode(&banner)
+			if err != nil {
+				return
+			}
+			s.storage.EditBanner(banner)
+			defer request.Body.Close()
 		}
-		bannerJson, err := json.Marshal(banner)
-		if err != nil {
-			return
+		if request.Method == "DELETE" {
+			banner := models.Banner{}
+			decoder := json.NewDecoder(request.Body)
+			err := decoder.Decode(&banner)
+			if err != nil {
+				return
+			}
+			s.storage.DeleteBanner(banner)
+			defer request.Body.Close()
 		}
-		_, _ = io.WriteString(writer, string(bannerJson))
 	}
 }
 
@@ -113,6 +135,7 @@ func (s *APIServer) createBanner() http.HandlerFunc {
 			if err != nil {
 				return
 			}
+			s.storage.CreateBanner(banner)
 			defer request.Body.Close()
 		}
 		return

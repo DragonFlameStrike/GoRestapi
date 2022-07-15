@@ -6,13 +6,16 @@ import (
 )
 
 type BannerArray struct {
-	Arr []models.Banner
+	Arr    []models.Banner
+	nextId int
 }
 
 func (b *BannerArray) BannerStorageInit() *BannerArray {
+	b.nextId = 1
 	b.Arr = make([]models.Banner, 10)
 	for i := 0; i < 10; i++ {
-		b.Arr[i] = models.NewBanner("Banner"+strconv.Itoa(i), i, "text", false, i)
+		b.Arr[i] = models.NewBanner("Banner"+strconv.Itoa(b.nextId), i, "text", false, b.nextId)
+		b.nextId++
 	}
 	return b
 }
@@ -28,4 +31,38 @@ func (b *BannerArray) GetBannerById(id int) (*models.Banner, int) {
 
 func (b *BannerArray) GetAllBanners() BannerArray {
 	return *b
+}
+
+func (b *BannerArray) CreateBanner(banner models.Banner) {
+	banner.IdBanner = b.nextId
+	b.nextId++
+	b.Arr = append(b.Arr, banner)
+}
+
+func (b *BannerArray) EditBanner(banner models.Banner) {
+	bannerId := banner.IdBanner
+	oldBanner, success := b.GetBannerById(bannerId)
+	if success == -1 {
+		return
+	}
+	oldBanner.Name = banner.Name
+	oldBanner.Categories = banner.Categories
+	oldBanner.Price = banner.Price
+	oldBanner.Text = banner.Text
+	oldBanner.Deleted = banner.Deleted
+	return
+}
+
+func (b *BannerArray) DeleteBanner(banner models.Banner) {
+	for i := 0; i < len(b.Arr); i++ {
+		tmp := b.Arr[i]
+		if banner.IdBanner == tmp.IdBanner {
+			b.Arr = remove(b.Arr, i)
+		}
+	}
+}
+
+func remove(s []models.Banner, i int) []models.Banner {
+	s[i] = s[len(s)-1]
+	return s[:len(s)-1]
 }
