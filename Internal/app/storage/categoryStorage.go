@@ -12,7 +12,7 @@ type CategoryArray struct {
 
 func (c *CategoryArray) CategoryStorageInit() *CategoryArray {
 	c.nextId = 1
-	c.Arr = make([]models.Category, 10)
+	c.Arr = make([]models.Category, 3)
 	for i := 0; i < 3; i++ {
 		c.Arr[i] = models.NewCategory("Category"+strconv.Itoa(c.nextId), false, "cat"+strconv.Itoa(c.nextId), c.nextId)
 		c.nextId++
