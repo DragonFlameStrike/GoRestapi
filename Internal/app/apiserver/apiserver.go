@@ -13,19 +13,22 @@ import (
 )
 
 type APIServer struct {
-	config  *Config
-	logger  *logrus.Logger
-	router  *mux.Router
-	storage *storage.BannerArray
+	config          *Config
+	logger          *logrus.Logger
+	router          *mux.Router
+	bannerStorage   *storage.BannerArray
+	categoryStorage *storage.CategoryArray
 }
 
 func New(config *Config) *APIServer {
 	var bannerStorage storage.BannerArray
+	var categoryStorage storage.CategoryArray
 	return &APIServer{
-		config:  config,
-		logger:  logrus.New(),
-		router:  mux.NewRouter(),
-		storage: bannerStorage.BannerStorageInit(),
+		config:          config,
+		logger:          logrus.New(),
+		router:          mux.NewRouter(),
+		bannerStorage:   bannerStorage.BannerStorageInit(),
+		categoryStorage: categoryStorage.CategoryStorageInit(),
 	}
 }
 
@@ -58,6 +61,11 @@ func (s *APIServer) configureRouter() {
 	s.router.HandleFunc("/root/api/{id}/delete", s.deleteBannerById())
 	s.router.HandleFunc("/root/api/search/", s.getAllBanners())
 	s.router.HandleFunc("/root/api/search/{value}", s.getBannerBySearchValue())
+	s.router.HandleFunc("/root/api/categories/create", s.createCategory())
+	s.router.HandleFunc("/root/api/categories/{id}", s.getCategoryById())
+	s.router.HandleFunc("/root/api/categories/{id}/delete", s.deleteCategoryById())
+	s.router.HandleFunc("/root/api/categories/search/", s.getAllCategories())
+	s.router.HandleFunc("/root/api/categories/search/{value}", s.getCategoryBySearchValue())
 
 }
 
@@ -70,7 +78,7 @@ func (s *APIServer) getBannerById() http.HandlerFunc {
 			return
 		}
 		if request.Method == "GET" {
-			banner, success := s.storage.GetBannerById(id)
+			banner, success := s.bannerStorage.GetBannerById(id)
 			if success == -1 {
 				return
 			}
@@ -87,7 +95,7 @@ func (s *APIServer) getBannerById() http.HandlerFunc {
 			if err != nil {
 				return
 			}
-			s.storage.EditBanner(banner, id)
+			s.bannerStorage.EditBanner(banner, id)
 			defer request.Body.Close()
 		}
 	}
@@ -101,7 +109,7 @@ func (s *APIServer) deleteBannerById() func(http.ResponseWriter, *http.Request) 
 		if err != nil {
 			return
 		}
-		s.storage.DeleteBanner(id)
+		s.bannerStorage.DeleteBanner(id)
 		defer request.Body.Close()
 	}
 }
@@ -110,7 +118,7 @@ func (s *APIServer) getAllBanners() http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		writer.Header().Set("Access-Control-Allow-Origin", "*")
 		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		banners := s.storage.GetAllBanners()
+		banners := s.bannerStorage.GetAllBanners()
 		bannersJson, err := json.Marshal(banners)
 		bannersJson = bannersJson[7 : len(bannersJson)-1]
 		if err != nil {
@@ -139,9 +147,94 @@ func (s *APIServer) createBanner() http.HandlerFunc {
 			if err != nil {
 				return
 			}
-			s.storage.CreateBanner(banner)
+			s.bannerStorage.CreateBanner(banner)
 			defer request.Body.Close()
 		}
+		return
+	}
+}
+
+func (s *APIServer) createCategory() func(http.ResponseWriter, *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Access-Control-Allow-Origin", "*")
+		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		if request.Method == "POST" || request.Method == "OPTIONS" {
+			category := models.Category{}
+			decoder := json.NewDecoder(request.Body)
+			err := decoder.Decode(&category)
+			if err != nil {
+				return
+			}
+			s.categoryStorage.CreateCategory(category)
+			defer request.Body.Close()
+		}
+		return
+	}
+}
+
+func (s *APIServer) getCategoryById() func(http.ResponseWriter, *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Access-Control-Allow-Origin", "*")
+		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		id, err := strconv.Atoi(getNparamFromUrl(4, request.URL.String()))
+		if err != nil {
+			return
+		}
+		if request.Method == "GET" {
+			category, success := s.categoryStorage.GetCategoryById(id)
+			if success == -1 {
+				return
+			}
+			categoryJson, err := json.Marshal(category)
+			if err != nil {
+				return
+			}
+			_, _ = io.WriteString(writer, string(categoryJson))
+		}
+		if request.Method == "POST" {
+			category := models.Category{}
+			decoder := json.NewDecoder(request.Body)
+			err := decoder.Decode(&category)
+			if err != nil {
+				return
+			}
+			s.categoryStorage.EditCategory(category, id)
+			defer request.Body.Close()
+		}
+	}
+}
+
+func (s *APIServer) deleteCategoryById() func(http.ResponseWriter, *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Access-Control-Allow-Origin", "*")
+		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		id, err := strconv.Atoi(getNparamFromUrl(4, request.URL.String()))
+		if err != nil {
+			return
+		}
+		s.categoryStorage.DeleteCategory(id)
+		defer request.Body.Close()
+	}
+}
+
+func (s *APIServer) getAllCategories() func(http.ResponseWriter, *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Access-Control-Allow-Origin", "*")
+		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		categories := s.categoryStorage.GetAllCategories()
+		categoriesJson, err := json.Marshal(categories)
+		categoriesJson = categoriesJson[7 : len(categoriesJson)-1]
+		if err != nil {
+			return
+		}
+		_, _ = io.WriteString(writer, string(categoriesJson))
+	}
+}
+
+func (s *APIServer) getCategoryBySearchValue() func(http.ResponseWriter, *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Access-Control-Allow-Origin", "*")
+		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		return
 	}
 }
