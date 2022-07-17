@@ -53,12 +53,12 @@ func (b *BannerArray) DeleteBanner(id int) {
 	for i := 0; i < len(b.Arr); i++ {
 		tmp := b.Arr[i]
 		if id == tmp.IdBanner {
-			b.Arr = remove(b.Arr, i)
+			b.Arr = removeBanner(b.Arr, i)
 		}
 	}
 }
 
-func remove(s []models.Banner, i int) []models.Banner {
+func removeBanner(s []models.Banner, i int) []models.Banner {
 	s[i] = s[len(s)-1]
 	return s[:len(s)-1]
 }

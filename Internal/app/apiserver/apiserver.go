@@ -90,10 +90,6 @@ func (s *APIServer) getBannerById() http.HandlerFunc {
 			s.storage.EditBanner(banner, id)
 			defer request.Body.Close()
 		}
-		//if request.Method == "DELETE" {
-		//	s.storage.DeleteBanner(id)
-		//	defer request.Body.Close()
-		//}
 	}
 }
 
