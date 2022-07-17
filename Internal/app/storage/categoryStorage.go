@@ -44,6 +44,7 @@ func (c *CategoryArray) EditCategory(category models.Category, id int) {
 		tmp := c.Arr[i]
 		if id == tmp.IdCategory {
 			c.Arr[i] = category
+			c.Arr[i].IdCategory = id
 		}
 	}
 	return
