@@ -44,6 +44,7 @@ func (b *BannerArray) EditBanner(banner models.Banner, id int) {
 		tmp := b.Arr[i]
 		if id == tmp.IdBanner {
 			b.Arr[i] = banner
+			b.Arr[i].IdBanner = id
 		}
 	}
 	return
