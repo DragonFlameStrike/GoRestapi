@@ -65,8 +65,28 @@ func (b *BannerArray) DeleteBanner(id int) {
 	}
 }
 
-func (b *BannerArray) GetAllBannersBySearchValue() BannerArray {
-	return *b
+func (b *BannerArray) GetAllBannersBySearchValue(categories []string) BannerArray {
+	var nb BannerArray
+	nb.randSeed = b.randSeed
+	nb.Arr = append(nb.Arr, b.Arr...)
+	nb.nextId = b.nextId
+	for i := 0; i < len(nb.Arr); i++ {
+		banner := nb.Arr[i]
+		find := false
+		for j := 0; j < len(banner.Categories); j++ {
+			categoryIdRequest := banner.Categories[j].IdRequest
+			for k := 0; k < len(categories); k++ {
+				if categories[k] == categoryIdRequest {
+					find = true
+				}
+			}
+		}
+		if !find {
+			nb.DeleteBanner(banner.IdBanner)
+			i--
+		}
+	}
+	return nb
 }
 
 func (b *BannerArray) GetRandom() models.Banner {

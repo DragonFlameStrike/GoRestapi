@@ -244,9 +244,16 @@ func (s *APIServer) getRandomBannerBySearchValue() func(http.ResponseWriter, *ht
 	return func(writer http.ResponseWriter, request *http.Request) {
 		writer.Header().Set("Access-Control-Allow-Origin", "*")
 		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		banners := s.bannerStorage.GetAllBannersBySearchValue()
-		banner := banners.GetRandom()
-		s.bannerStorage.IncreaseRandSeed()
+		query := request.URL.Query()
+		categories, _ := query["cat"]
+		banners := s.bannerStorage.GetAllBannersBySearchValue(categories)
+		var banner models.Banner
+		if len(banners.Arr) == 0 {
+			banner = models.NewBanner("", 0, "", true, -1, nil)
+		} else {
+			banner = banners.GetRandom()
+			s.bannerStorage.IncreaseRandSeed()
+		}
 		bannerJson, err := json.Marshal(banner)
 		if err != nil {
 			return
