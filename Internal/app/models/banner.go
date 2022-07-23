@@ -9,12 +9,12 @@ type Banner struct {
 	IdBanner   int        `json:"idBanner"`
 }
 
-func NewBanner(name string, price int, text string, deleted bool, idBanner int) Banner {
+func NewBanner(name string, price int, text string, deleted bool, idBanner int, categories []Category) Banner {
 	return Banner{
 		Name:       name,
 		Price:      price,
 		Text:       text,
-		Categories: make([]Category, 0),
+		Categories: categories,
 		Deleted:    deleted,
 		IdBanner:   idBanner,
 	}

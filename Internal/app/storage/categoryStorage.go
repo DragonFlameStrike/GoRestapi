@@ -2,7 +2,6 @@ package storage
 
 import (
 	"restapisrever/Internal/app/models"
-	"strconv"
 )
 
 type CategoryArray struct {
@@ -11,10 +10,11 @@ type CategoryArray struct {
 }
 
 func (c *CategoryArray) CategoryStorageInit() *CategoryArray {
+	categories := []string{"cat", "dog", "fish"}
 	c.nextId = 1
 	c.Arr = make([]models.Category, 3)
 	for i := 0; i < 3; i++ {
-		c.Arr[i] = models.NewCategory("Category"+strconv.Itoa(c.nextId), false, "cat"+strconv.Itoa(c.nextId), c.nextId)
+		c.Arr[i] = models.NewCategory(categories[i], false, categories[i], c.nextId)
 		c.nextId++
 	}
 	return c

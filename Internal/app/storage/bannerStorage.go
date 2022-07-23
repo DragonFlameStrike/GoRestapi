@@ -1,22 +1,28 @@
 package storage
 
 import (
+	"math/rand"
 	"restapisrever/Internal/app/models"
+
 	"strconv"
 )
 
 type BannerArray struct {
-	Arr    []models.Banner
-	nextId int
+	Arr      []models.Banner
+	nextId   int
+	randSeed int64
 }
 
-func (b *BannerArray) BannerStorageInit() *BannerArray {
+func (b *BannerArray) BannerStorageInit(categoryStorage CategoryArray) *BannerArray {
 	b.nextId = 1
 	b.Arr = make([]models.Banner, 10)
 	for i := 0; i < 10; i++ {
-		b.Arr[i] = models.NewBanner("Banner"+strconv.Itoa(b.nextId), i, "text", false, b.nextId)
+		categories := make([]models.Category, 1)
+		categories[0] = categoryStorage.Arr[i%len(categoryStorage.Arr)]
+		b.Arr[i] = models.NewBanner("Banner"+strconv.Itoa(b.nextId), i, "text", false, b.nextId, categories)
 		b.nextId++
 	}
+	b.randSeed = 1
 	return b
 }
 func (b *BannerArray) GetBannerById(id int) (*models.Banner, int) {
@@ -57,6 +63,22 @@ func (b *BannerArray) DeleteBanner(id int) {
 			b.Arr = removeBanner(b.Arr, i)
 		}
 	}
+}
+
+func (b *BannerArray) GetAllBannersBySearchValue() BannerArray {
+	return *b
+}
+
+func (b *BannerArray) GetRandom() models.Banner {
+	rand.Seed(b.randSeed)
+	number := rand.Intn(len(b.Arr))
+	banner := b.Arr[number]
+	return banner
+}
+
+func (b *BannerArray) IncreaseRandSeed() {
+	b.randSeed++
+	return
 }
 
 func removeBanner(s []models.Banner, i int) []models.Banner {

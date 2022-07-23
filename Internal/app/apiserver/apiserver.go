@@ -27,8 +27,8 @@ func New(config *Config) *APIServer {
 		config:          config,
 		logger:          logrus.New(),
 		router:          mux.NewRouter(),
-		bannerStorage:   bannerStorage.BannerStorageInit(),
 		categoryStorage: categoryStorage.CategoryStorageInit(),
+		bannerStorage:   bannerStorage.BannerStorageInit(categoryStorage),
 	}
 }
 
@@ -57,6 +57,7 @@ func (s *APIServer) configureLogger() error {
 
 func (s *APIServer) configureRouter() {
 	s.router.HandleFunc("/root/api/create", s.createBanner())
+	s.router.HandleFunc("/root/api/search-random", s.getRandomBannerBySearchValue())
 	s.router.HandleFunc("/root/api/{id}", s.getBannerById())
 	s.router.HandleFunc("/root/api/{id}/delete", s.deleteBannerById())
 	s.router.HandleFunc("/root/api/search/", s.getAllBanners())
@@ -235,6 +236,23 @@ func (s *APIServer) getCategoryBySearchValue() func(http.ResponseWriter, *http.R
 	return func(writer http.ResponseWriter, request *http.Request) {
 		writer.Header().Set("Access-Control-Allow-Origin", "*")
 		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		return
+	}
+}
+
+func (s *APIServer) getRandomBannerBySearchValue() func(http.ResponseWriter, *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Access-Control-Allow-Origin", "*")
+		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		banners := s.bannerStorage.GetAllBannersBySearchValue()
+		banner := banners.GetRandom()
+		s.bannerStorage.IncreaseRandSeed()
+		bannerJson, err := json.Marshal(banner)
+		if err != nil {
+			return
+		}
+		_, _ = io.WriteString(writer, string(bannerJson))
+
 		return
 	}
 }
